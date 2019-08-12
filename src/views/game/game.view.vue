@@ -22,7 +22,7 @@
               span.mr-3 Jogada - {{player[1]}}
           v-flex.xs12.pa-2(v-else)
             h1.text-center
-              | Vencedor {{restantPlayers[0]}}
+              | Vencedor {{restantGames[0]}}
           v-btn.primary(@click="rps_game_winnner()") Jogar
 </template>
 
@@ -32,31 +32,26 @@ export default {
     strategies: ['R', 'S', 'P'],
     key: [
       [
-        [ ["Armando", "P"], ["Dave", "S"] ],
-        [ ["Richard", "R"], ["Michael", "S"] ],
+        [ ['Armando', 'X'], ['Dave', 'S'] ],
+        [ ['Richard', 'R'], ['Michael', 'S'] ],
       ],
       [
-        [ ["Allen", "S"], ["Omer", "P"] ],
-        [ ["David E.", "R"], ["Richard X.", "P"] ],
+        [ ['Allen', 'S'], ['Omer', 'P'] ],
+        [ ['David E.', 'R'], ['Richard X.', 'P'] ],
       ],
     ],
     numberOfPlayers: 0,
     round: 1,
-    restantPlayers: [],
+    restantGames: [],
     rockLose: ['P'],
     paperLose: ['S'],
     scissorsLose: ['R'],
-    newRound: 0,
     games: [],
     loading: false,
     endGame: false,
   }),
   methods: {
     configGame() {
-      if (!this.key || this.key.length !== 2) {
-        throw new WrongNumberOfPlayersError();
-        return;
-      }
       this.key.forEach((games) => {
         games.forEach((game) => {
           this.games.push(game)
@@ -74,7 +69,7 @@ export default {
         this.initGame(mappedGame);
       });
 
-      if (this.restantPlayers.length > 1) {
+      if (this.restantGames.length > 1) {
         this.createNewRounds();
         return;
       } else {
@@ -83,21 +78,25 @@ export default {
         return;
       }
     },
-    initGame(player) {
-      this.playerOne = player[0];
-      this.playerTwo = player[2];
-      this.strategyFirst = String(player[1]).toUpperCase();
-      this.strategySecond = String(player[3]).toUpperCase();
+    initGame(players) {
+      if (!players || players !== 2) {
+        throw new WrongNumberOfPlayersError('Numéro de jogadores inválido');
+        return;
+      }
+      this.playerOne = players[0];
+      this.playerTwo = players[2];
+      this.strategyFirst = String(players[1]).toUpperCase();
+      this.strategySecond = String(players[3]).toUpperCase();
 
       if (!this.strategies.includes(this.strategyFirst) || !this.strategies.includes(this.strategySecond)) {
-        throw new NoSuchStrategyError();
+        throw new NoSuchStrategyError('Alguma jogada não é válida');
         return;
       }
       this.playerOneRockStrategy();
     },
     playerOneRockStrategy() {
       if (this.strategyFirst === 'R' && !this.rockLose.includes(this.strategySecond)) {
-        this.restantPlayers.push([ this.playerOne, this.strategyFirst ]);
+        this.restantGames.push([ this.playerOne, this.strategyFirst ]);
         return;
       } else {
         this.playerOneScissorsStrategy();
@@ -105,7 +104,7 @@ export default {
     },
     playerOneScissorsStrategy() {
       if (this.strategyFirst === 'S' && !this.scissorsLose.includes(this.strategySecond)) {
-        this.restantPlayers.push([ this.playerOne, this.strategyFirst ]);
+        this.restantGames.push([ this.playerOne, this.strategyFirst ]);
         return;
       } else {
         this.playerOnePaperStrategy();
@@ -113,7 +112,7 @@ export default {
     },
     playerOnePaperStrategy() {
       if (this.strategyFirst === 'P' && !this.paperLose.includes(this.strategySecond)) {
-        this.restantPlayers.push([ this.playerOne, this.strategyFirst ]);
+        this.restantGames.push([ this.playerOne, this.strategyFirst ]);
         return;
       } else {
         this.playerTwoRockStrategy();
@@ -121,7 +120,7 @@ export default {
     },
     playerTwoRockStrategy() {
       if (this.strategySecond === 'R' && !this.rockLose.includes(this.strategyFirst)) {
-        this.restantPlayers.push([ this.playerTwo, this.strategySecond ]);
+        this.restantGames.push([ this.playerTwo, this.strategySecond ]);
         return;
       } else {
         this.playerTwoScissorsStrategy();
@@ -129,7 +128,7 @@ export default {
     },
     playerTwoScissorsStrategy() {
       if (this.strategySecond === 'S' && !this.scissorsLose.includes(this.strategyFirst)) {
-        this.restantPlayers.push([ this.playerTwo, this.strategySecond ]);
+        this.restantGames.push([ this.playerTwo, this.strategySecond ]);
         return;
       } else {
         this.playerTwoPaperStrategy();
@@ -137,22 +136,21 @@ export default {
     },
     playerTwoPaperStrategy() {
       if (this.strategySecond === 'P' && !this.paperLose.includes(this.strategyFirst)) {
-        this.restantPlayers.push([ this.playerTwo, this.strategySecond ]);
+        this.restantGames.push([ this.playerTwo, this.strategySecond ]);
         return;
       } else {
-        this.restantPlayers.push([ this.playerOne, this.strategyFirst ]);
+        this.restantGames.push([ this.playerOne, this.strategyFirst ]);
         return;
       }
     },
     createNewRounds() {
       this.games = [];
-      for (let x = 0; x < this.restantPlayers.length; x += 2) {
-        this.games.push([this.restantPlayers[x], this.restantPlayers[x + 1]]);
+      for (let x = 0; x < this.restantGames.length; x += 2) {
+        this.games.push([this.restantGames[x], this.restantGames[x + 1]]);
       }
-      if (this.restantPlayers.length > 1) {
-        this.restantPlayers = [];
+      if (this.restantGames.length > 1) {
+        this.restantGames = [];
         this.rps_game_winnner();
-        this.newRound += 1;
       }
     },
   },
