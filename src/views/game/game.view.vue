@@ -12,6 +12,8 @@
               :value="loading"
               color="light-blue"
               )
+          v-flex.xs12.pa-2(v-if="invalidGame")
+            span Houve algum problema tente novamente.
           v-flex.xs12.pa-2(
             v-for="(game, index) in games"
             v-if="!endGame"
@@ -20,10 +22,11 @@
             template(v-for="player in game")
               span.mr-3 Jogador - {{player[0]}}
               span.mr-3 Jogada - {{player[1]}}
-          v-flex.xs12.pa-2(v-else)
+          v-flex.xs12.pa-2(v-else-if="!invalidGame")
             h1.text-center
               | Vencedor {{restantGames[0]}}
-          v-btn.primary(@click="rps_game_winnner()") Jogar
+          v-btn.primary(v-if="!endGame" @click="rps_game_winnner()") Jogar
+          v-btn.primary(v-if="invalidGame || endGame" @click="restart()") Jogar novamente
 </template>
 
 <script>
@@ -32,7 +35,7 @@ export default {
     strategies: ['R', 'S', 'P'],
     key: [
       [
-        [ ['Armando', 'X'], ['Dave', 'S'] ],
+        [ ['Armando', 'P'], ['Dave', 'S'] ],
         [ ['Richard', 'R'], ['Michael', 'S'] ],
       ],
       [
@@ -49,6 +52,7 @@ export default {
     games: [],
     loading: false,
     endGame: false,
+    invalidGame: false,
   }),
   methods: {
     configGame() {
@@ -79,20 +83,28 @@ export default {
       }
     },
     initGame(players) {
-      if (!players || players !== 2) {
-        throw new WrongNumberOfPlayersError('Numéro de jogadores inválido');
+      if (!players || players.length < 4) {
+        this.invalidGame = true;
+        alert('Numéro de jogadores inválido');
         return;
       }
-      this.playerOne = players[0];
-      this.playerTwo = players[2];
-      this.strategyFirst = String(players[1]).toUpperCase();
-      this.strategySecond = String(players[3]).toUpperCase();
+      if (!this.invalidGame) {
 
-      if (!this.strategies.includes(this.strategyFirst) || !this.strategies.includes(this.strategySecond)) {
-        throw new NoSuchStrategyError('Alguma jogada não é válida');
-        return;
+        this.playerOne = players[0];
+        this.playerTwo = players[2];
+        this.strategyFirst = String(players[1]).toUpperCase();
+        this.strategySecond = String(players[3]).toUpperCase();
+
+        if (!this.strategies.includes(this.strategyFirst) || !this.strategies.includes(this.strategySecond)) {
+          this.invalidGame = true;
+          alert('Alguma jogada não é válida');
+          return;
+        }
+
+        if (!this.invalidGame) {
+          this.playerOneRockStrategy();
+        }
       }
-      this.playerOneRockStrategy();
     },
     playerOneRockStrategy() {
       if (this.strategyFirst === 'R' && !this.rockLose.includes(this.strategySecond)) {
@@ -152,6 +164,9 @@ export default {
         this.restantGames = [];
         this.rps_game_winnner();
       }
+    },
+    restart() {
+      window.location.reload();
     },
   },
   created() {
